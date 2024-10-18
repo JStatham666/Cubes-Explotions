@@ -5,51 +5,37 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class Cube : MonoBehaviour
 {
-    [SerializeField] private int _minCreate = 2;
-    [SerializeField] private int _maxCreate = 6;
-    [SerializeField] private int _chanceDivider = 2;
-    [SerializeField] private int _scaleDivider = 2;
-
-    public float CurrentChanceCreate { get; private set; } = 100f;
+    private MeshRenderer _renderer;
     private float _maxChanceCreate = 100f;
 
     public event Action<Cube> Dividing;
-    public event Action<Cube> Removing;
+    public event Action<Cube> CubeRemoved;
 
-    private void OnEnable()
+    public Rigidbody CubeRigidbody { get; private set; }
+    public float CurrentChanceCreate { get; private set; } = 100f;
+
+    public void Init(float chanceCreate) => CurrentChanceCreate = chanceCreate;
+
+    private void Awake()
     {
-        GetComponent<MeshRenderer>().material.color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
+        _renderer = GetComponent<MeshRenderer>();
+        CubeRigidbody = GetComponent<Rigidbody>();
     }
 
-    private void OnMouseDown()
-    {
-        Explode();
-        Destroy(gameObject);
-    }
+    private void Start() => _renderer.material.color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
 
-    public void Init(float chanceCreate)
-    {
-        transform.localScale /= _scaleDivider;
-        CurrentChanceCreate = chanceCreate / _chanceDivider;
-    }
+    private void OnMouseDown() => Explode();
 
     private void Explode()
     {
-        Removing?.Invoke(this);
-
         if (CanDivide())
-        {
-            int amountOfCubes = UnityEngine.Random.Range(_minCreate, _maxCreate + 1);
+            Dividing?.Invoke(this);
 
-            for (int i = 0; i < amountOfCubes; i++)
-            {
-                Dividing?.Invoke(this);
-            }
-        }
+        CubeRemoved?.Invoke(this);
+        Destroy(gameObject);
+
+        Debug.Log(CurrentChanceCreate);
     }
 
-    private bool CanDivide()
-    {
-        return UnityEngine.Random.Range(0, _maxChanceCreate) < CurrentChanceCreate;
-    }
+    private bool CanDivide() => UnityEngine.Random.Range(0, _maxChanceCreate) < CurrentChanceCreate;
 }

@@ -5,13 +5,17 @@ public class Spawner : MonoBehaviour
 {
     [SerializeField] private Exploder _exploder;
     [SerializeField] private List<Cube> _cubes;
+    [SerializeField] private int _minCreate = 2;
+    [SerializeField] private int _maxCreate = 6;
+    [SerializeField] private int _chanceDivider = 2;
+    [SerializeField] private int _scaleDivider = 2;
 
     private void OnEnable()
     {
         foreach (var cube in _cubes)
         {
             cube.Dividing += Create;
-            cube.Removing += Delete;
+            cube.CubeRemoved += cube => _cubes.Remove(cube);
         }
     }
 
@@ -20,28 +24,30 @@ public class Spawner : MonoBehaviour
         foreach (var cube in _cubes)
         {
             cube.Dividing -= Create;
-            cube.Removing -= Delete;
+            cube.CubeRemoved -= cube => _cubes.Remove(cube);
         }
-    }
-
-    private void Delete(Cube cube)
-    {
-        _cubes.Remove(cube);
     }
 
     private void Create(Cube explodedCube)
     {
-        Cube cube = Instantiate(explodedCube, explodedCube.transform.position, Quaternion.identity);
-        _cubes.Add(cube);
-        cube.Dividing += Create;
-        cube.Removing += Delete;
-
         float chanceCreate = explodedCube.CurrentChanceCreate;
-        cube.Init(chanceCreate);
+        explodedCube.transform.localScale /= _scaleDivider;
 
-        Rigidbody cubeRigidbody = cube.GetComponent<Rigidbody>();
+        explodedCube.Dividing -= Create;
+        explodedCube.CubeRemoved -= cube => _cubes.Remove(cube);
+        _cubes.Remove(explodedCube);
 
-        if (cubeRigidbody != null)
-            _exploder.Explode(cubeRigidbody);
+        int amountOf—ubes = UnityEngine.Random.Range(_minCreate, _maxCreate + 1);
+
+        for (int i = 0; i < amountOf—ubes; i++)
+        {
+            Cube cube = Instantiate(explodedCube, explodedCube.transform.position, Quaternion.identity);
+            cube.Dividing += Create;
+            _cubes.Add(cube);
+
+            cube.Init(chanceCreate / _chanceDivider);
+
+            _exploder.Explode(cube.CubeRigidbody);
+        }
     }
 }
