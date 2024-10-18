@@ -35,9 +35,12 @@ public class Spawner : MonoBehaviour
         _cubes.Add(cube);
         cube.Dividing += Create;
         cube.Removing += Delete;
-        cube.Init();
+
+        float chanceCreate = explodedCube.CurrentChanceCreate;
+        cube.Init(chanceCreate);
 
         Rigidbody cubeRigidbody = cube.GetComponent<Rigidbody>();
+
         if (cubeRigidbody != null)
             _exploder.Explode(cubeRigidbody);
     }

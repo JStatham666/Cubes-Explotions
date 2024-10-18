@@ -10,8 +10,8 @@ public class Cube : MonoBehaviour
     [SerializeField] private int _chanceDivider = 2;
     [SerializeField] private int _scaleDivider = 2;
 
-    private int _maxChanceCreate = 100;
-    private int _currentChanceCreate = 100;
+    public float CurrentChanceCreate { get; private set; } = 100f;
+    private float _maxChanceCreate = 100f;
 
     public event Action<Cube> Dividing;
     public event Action<Cube> Removing;
@@ -27,10 +27,10 @@ public class Cube : MonoBehaviour
         Destroy(gameObject);
     }
 
-    public void Init()
+    public void Init(float chanceCreate)
     {
         transform.localScale /= _scaleDivider;
-        _currentChanceCreate /= _chanceDivider;
+        CurrentChanceCreate = chanceCreate / _chanceDivider;
     }
 
     private void Explode()
@@ -39,9 +39,9 @@ public class Cube : MonoBehaviour
 
         if (CanDivide())
         {
-            int amountOfcubes = UnityEngine.Random.Range(_minCreate, _maxCreate + 1);
+            int amountOfCubes = UnityEngine.Random.Range(_minCreate, _maxCreate + 1);
 
-            for (int i = 0; i < amountOfcubes; i++)
+            for (int i = 0; i < amountOfCubes; i++)
             {
                 Dividing?.Invoke(this);
             }
@@ -50,6 +50,6 @@ public class Cube : MonoBehaviour
 
     private bool CanDivide()
     {
-        return UnityEngine.Random.Range(0, _maxChanceCreate) < _currentChanceCreate;
+        return UnityEngine.Random.Range(0, _maxChanceCreate) < CurrentChanceCreate;
     }
 }
